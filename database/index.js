@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // const mongoUs
 
-const mongoUrl = 'mongodb://192.168.1.107:27017/chat';
+const mongoUrl = 'mongodb://172.30.1.237:27017/chat';
 
 module.exports = {
 

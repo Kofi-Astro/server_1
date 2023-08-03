@@ -66,7 +66,7 @@ class UserController {
             console.log('username = ', username);
             console.log('password = ', password);
             const user = await userRepository.findbUsername(username);
-            // console.log('user = ', user);
+            console.log('user = ', user);
 
             if (!user) {
                 return res.json({ error: true, errorMessage: 'Invalid credentials' });

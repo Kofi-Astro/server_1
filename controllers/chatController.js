@@ -3,6 +3,14 @@ const ObjectId = require('mongoose').Types.ObjectId;
 const Dates = require('../utils/dates');
 const shared = require('../shared/index');
 
+function formatChatMessageTime(chat) {
+    chat.messages = chat.messages.map(message => {
+        message.createdAt = new Date(message.createAt).getTime();
+        return message;
+    });
+    return chat;
+}
+
 class ChatController {
     async getChatByUserId(req, res) {
         try {
@@ -24,9 +32,9 @@ class ChatController {
                 });
                 chat = await ChatRepository.getChatById(chat._id);
             }
-
+            const formattedChat = formatChatMessageTime(chat);
             return res.json({
-                chat
+                chat: formattedChat
             });
 
         } catch (error) {
@@ -42,9 +50,10 @@ class ChatController {
         // console.log('Entry into getChats')00
         try {
             const myId = req._id;
-            console.log('myId', myId);
             const chats = await ChatRepository.getUserChats(myId);
-            return res.json({ chats });
+
+            const formattedChats = chats.map(formatChatMessageTime);
+            return res.json({ chats: formattedChats });
 
         } catch (error) {
             console.error(error);
@@ -79,7 +88,7 @@ class ChatController {
                 _id: messageId,
                 userId: new ObjectId(myId),
                 text,
-                createdAt: datetime
+                createdAt: Date.now()
             };
 
             chat.messages.push(message);
