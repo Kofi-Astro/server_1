@@ -35,14 +35,14 @@ io.on('connection', socket => {
     users = users.filter(x => x.socketId !== socket.id);
     // io.emit('users-update', users);
     shared.users = users;
-    console.log('user left', users);
+    // console.log('user left', users);
   });
 
   socket.on('disconnect', () => {
     users = users.filter(x => x.socketId !== socket.id);
     // io.emit('users-update', users);
     shared.users = users;
-    console.log('user disconnected', users);
+    // console.log('user disconnected', users);
   });
 });
 

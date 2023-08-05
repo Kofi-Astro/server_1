@@ -33,6 +33,12 @@ class ChatRepository {
             ]
         }).populate('lowerId').populate('higherId');
     }
+
+    async updateChatMessages(chatId, messages) {
+        return await Chat.findByIdAndUpdate(chatId, {
+            $set: { messages }
+        });
+    }
 }
 
 const chatRepository = new ChatRepository();

@@ -1,6 +1,5 @@
 const ChatRepository = require('../repositories/chatRepository');
 const ObjectId = require('mongoose').Types.ObjectId;
-const Dates = require('../utils/dates');
 const shared = require('../shared/index');
 
 function formatChatMessageTime(chat) {
@@ -81,26 +80,28 @@ class ChatController {
             }
 
             const chat = await ChatRepository.getChatById(chatId);
-            const datetime = Dates.getDateTime();
+            const isLowerIdUser = chat.lowerId._id == myId;
             const messageId = new ObjectId();
             // chat.messages.push({
             const message = {
                 _id: messageId,
                 userId: new ObjectId(myId),
                 text,
-                createdAt: Date.now()
+                createdAt: Date.now(),
+                unreadByLowerIdUser: isLowerIdUser ? false : true,
+                unreadByHigherIdUser: isLowerIdUser ? true : false,
             };
 
             chat.messages.push(message);
             const users = shared.users;
             const findUsers = users.filter(user => (user._id == chat.lowerId._id || user._id == chat.higherId._id) && user._id != myId);
-            console.log("findUsers: ", findUsers);
+            // console.log("findUsers: ", findUsers);
             findUsers.forEach(user => {
-                console.log('Issuing user with socket: ', user.socket.id);
-                console.log('Issuing', {
-                    ...chat,
-                    messages: chat.messages,
-                })
+                // console.log('Issuing user with socket: ', user.socket.id);
+                // console.log('Issuing', {
+                //     ...chat,
+                //     messages: chat.messages,
+                // })
                 user.socket.emit('message', {
                     ...chat,
                     // messages,
@@ -121,6 +122,42 @@ class ChatController {
                 errorMessage: error
             });
 
+        }
+    }
+
+
+    async readChat(req, res) {
+        try {
+            const chatId = req.params.chatId;
+            const myId = req._id;
+            const chat = await ChatRepository.getChatById(chatId);
+            const isLowerIdUser = chat.lowerId._id == myId;
+            // console.log("lowerId : ", isLowerIdUser);
+            // console.log("myId: ", myId);
+            // console.log("isLowerId : ", isLowerIdUser);
+
+            const messages = chat.messages.map(message => {
+                if (isLowerIdUser) {
+                    message.unreadByLowerIdUser = false;
+                } else {
+                    message.unreadByHigherIdUser = false;
+                }
+                return message;
+            });
+
+            const updatedChat = await ChatRepository.updateChatMessages(chat._id, messages);
+
+            const formatedChat = formatChatMessageTime(updatedChat);
+            return res.json({
+                // chat: updatedChat
+                chat: formatedChat
+            });
+        } catch (error) {
+            console.error(error);
+            return res.json({
+                error: true,
+                errorMessage: error
+            });
         }
     }
 }
